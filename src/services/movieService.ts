@@ -3,7 +3,7 @@ import type { Movie } from "../types/movie";
 
 const TOKEN = import.meta.env.VITE_TMDB_TOKEN;
 
-interface MoviesResponse {
+export interface MoviesResponse {
   page: number;
   results: Movie[];
   total_pages: number;
@@ -13,10 +13,10 @@ interface MoviesResponse {
 export default async function fetchMovies(
   query: string,
   page: number = 1
-): Promise<Movie[]> {
-  const baseURL: string = "https://api.themoviedb.org/3";
-  const endPoint: string = "/search/movie";
-  const url: string = baseURL + endPoint;
+): Promise<MoviesResponse> {
+  const baseURL = "https://api.themoviedb.org/3";
+  const endPoint = "/search/movie";
+  const url = baseURL + endPoint;
 
   const params = {
     query,
@@ -35,5 +35,5 @@ export default async function fetchMovies(
     params,
   });
 
-  return res.data.results;
+  return res.data;
 }
