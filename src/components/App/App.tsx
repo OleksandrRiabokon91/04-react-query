@@ -1,27 +1,26 @@
+import { useEffect, useState } from "react";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
+import { Toaster, toast } from "react-hot-toast";
+
 import css from "./App.module.css";
 import "modern-normalize";
 
-import { useState } from "react";
-import { useQuery, keepPreviousData } from "@tanstack/react-query";
-import { Toaster } from "react-hot-toast";
-import { toast } from "react-hot-toast";
+import SearchBar from "../SearchBar/SearchBar";
+import MovieGrid from "../MovieGrid/MovieGrid";
+import MovieModal from "../MovieModal/MovieModal";
+import ErrorMessage from "../ErrorMessage/ErrorMessage";
+import Loader from "../Loader/Loader";
 import ReactPaginate from "react-paginate";
 
-import type { Movie } from "../../types/movie";
-
-import SearchBar from "../SearchBar/SearchBar";
 import fetchMovies from "../../services/movieService";
-import MovieGrid from "../MovieGrid/MovieGrid";
-import Loader from "../Loader/Loader";
-import ErrorMessage from "../ErrorMessage/ErrorMessage";
-import MovieModal from "../MovieModal/MovieModal";
+import type { Movie } from "../../types/movie";
 
 export default function App() {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
 
-  const { data, isLoading, isError, error, refetch } = useQuery({
+  const { data, isLoading, isError, error, isSuccess } = useQuery({
     queryKey: ["movies", searchQuery, currentPage],
     queryFn: () => fetchMovies(searchQuery, currentPage),
     enabled: searchQuery !== "",
@@ -31,20 +30,20 @@ export default function App() {
   const movies = data?.results || [];
   const totalPages = data?.total_pages || 0;
 
-  const handleQuerySubmit = async (query: string) => {
+  const handleQuerySubmit = (query: string) => {
     setSearchQuery(query);
     setCurrentPage(1);
+  };
 
-    const result = await refetch();
-
-    if (result.data?.results.length === 0) {
+  useEffect(() => {
+    if (isSuccess && data && data.results.length === 0) {
       toast.error("No movies found for your request.");
     }
 
-    if (result.error) {
+    if (isError && error instanceof Error) {
       toast.error("Something went wrong - try again later");
     }
-  };
+  }, [isSuccess, isError, data, error]);
 
   return (
     <div className={css.app}>
